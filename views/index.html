@@ -1,0 +1,38 @@
+<html>
+	<head>
+		<title>Chat Application	</title>
+		<link rel="stylesheet" type="text/css" href="css/style.css">
+		<script type="text/javascript" src="/jquery/jquery.js"></script>
+		<script type="text/javascript" src="socket.io/socket.io.js"></script>
+	</head>
+	<body>
+		<script>
+			$(document).ready(function(){
+				var socket = io.connect();
+				var $messageForm = $('#send-message');
+				var $messageBox = $('#message');
+				var $chat = $('#chat');
+
+				var userName = prompt('Enter your name', 'Anonymous') || 'Anonymous';
+
+				$messageForm.submit(function(e){
+					// prevent reload the page
+					e.preventDefault();
+					socket.emit('sendMessageEvent', {name: userName, msg: $messageBox.val()});
+					$messageBox.val('');
+				});
+
+				socket.on('reciveMessageEvent', function(data){
+					$chat.append('<b>' + data.name + '</b>: ' + data.msg + '<br/>');
+				});
+			});
+		</script>
+
+		<h3>Chat Room</h3>
+		<div id="chat"></div>
+		<form id="send-message">
+			<input type="text" size="35" id="message"/>
+			<input type="submit"/>
+		</form>
+	</body>
+</html>

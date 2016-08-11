@@ -1,0 +1,24 @@
+{
+  "name": "chatapp",
+  "version": "0.0.1",
+  "description": "Chat Application",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tungvumanh95/ChatApp.git"
+  },
+  "author": "VuManhTung",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tungvumanh95/ChatApp/issues"
+  },
+  "homepage": "https://github.com/tungvumanh95/ChatApp#readme",
+  "dependencies": {
+    "express": "4.14.0",
+    "jquery": "^3.1.0",
+    "socket.io": "1.4.8"
+  }
+}
