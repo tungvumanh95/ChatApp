@@ -1,4 +1,4 @@
-#chat {
+#chat, .chat {
 	height: 500px;
 }
 
@@ -6,7 +6,7 @@
 	display: none;
 }
 
-#chatWrap {
+#chatWrap, .chatWrap {
 	float: left;
 	border: 1px #000 solid;
 }
