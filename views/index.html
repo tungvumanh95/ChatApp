@@ -84,6 +84,8 @@
 				});
 
 				$(document).on('submit', '.send-message', function(e) {
+					socket.emit('sendMessageEvent', $('.message').val());
+					$('.message').val('');
 					// khong can dung e.preventDefault();
 					return false;
 				});
