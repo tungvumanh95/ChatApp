@@ -2,7 +2,7 @@
  var app = express();
  var server = require('http').createServer(app);
  var io = require('socket.io').listen(server);
- var lsUserNames = [];
+ var users = {};
 
 // mapping resource files
 app.use(express.static('public'));
@@ -26,21 +26,26 @@ io.sockets.on('connection', function(socket){
 	// listen to check exist userName or not
 	socket.on('userLogin', function(data, callback) {
 		// if user exists => sending false (invalid) to the client
-		if (lsUserNames.indexOf(data) != -1) {
+		if (data in users) {
 			callback(false);
 		} else {
 			callback(true);
 			socket.userName = data;
-			lsUserNames.push(socket.userName);
+			users[socket.userName] = socket;
 			updateUserNames();
 		}
 	});
 
 	// listen sending message event
-	socket.on('sendMessageEvent', function(data){
+	socket.on('sendMessageEvent', function(data) {
 		io.sockets.emit('reciveMessageEvent', {userName: socket.userName, msg: data});
 		// I dont need this below code because it will send everyone except me
 		// socket.broadcast.emit('reciveMessageEvent',data);
+	});
+
+	socket.on('sendPrivateMessage', function(toUser, data) {
+		users[toUser].emit('recivePrivateMessageEvent', {isSend: false, fromUserName: toUser, toUserName: socket.userName, msg: data});
+		users[socket.userName].emit('recivePrivateMessageEvent', {isSend: true, fromUserName: socket.userName, toUserName: toUser, msg: data});
 	});
 
 	// listening disconnect event (Out the session)
@@ -48,13 +53,14 @@ io.sockets.on('connection', function(socket){
 		// Remove if user name is exist
 		if(socket.userName) {
 			console.log(socket.userName + ', ' +data);
-			lsUserNames.splice(lsUserNames.indexOf(socket.userName), 1);
+			// users.splice(users.indexOf(socket.userName), 1);
+			delete users[socket.userName];
 			updateUserNames();
 		}
 	});
 
 	// function update list usernames from an event
 	function updateUserNames() {
-		io.sockets.emit('lsUserNames', lsUserNames);
+		io.sockets.emit('users', Object.keys(users));
 	}
 });

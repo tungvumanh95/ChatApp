@@ -20,6 +20,7 @@
 
 			<!-- Message Box-->
 			<div id="contentWrap">
+				<h2 id ="userNameDisplay"></h2>
 				<div id="chatWrap">
 					<div id="chat"></div>
 					<form id="send-message">
@@ -46,10 +47,12 @@
 				// Login function
 				$loginForm.submit(function(e) {
 					e.preventDefault();
+					var name = $userName.val();
 					socket.emit('userLogin', $userName.val(), function(callbackValue) {
 						if (callbackValue) {
 							$('#loginWrap').hide();
 							$('#contentWrap').show();
+							$('#userNameDisplay').html(name);
 						} else {
 							$loginError.html('The userName is invalid or it may be already used. Please Try Again !');
 						}
@@ -71,7 +74,7 @@
 				});
 
 				// listening list users
-				socket.on('lsUserNames', function(data){
+				socket.on('users', function(data){
 					var users = '';
 					for (var i = 0; i < data.length; i++) {
 						users += "<span class='onlineUser'>" + data[i] + '<br/></span>'
@@ -79,14 +82,32 @@
 					$users.html(users);
 				});
 
+				// listening recieve private message
+				socket.on('recivePrivateMessageEvent', function(data){
+					var toUserName = data.toUserName.trim();
+					var msg = data.msg;
+					var $messagePrivateFrom = $('#div' + toUserName);
+					if ($messagePrivateFrom.length == 0) {
+						$('#wrapper').append("<div class='contentWrap'><div id='div" + toUserName + "' class='chatWrap'><div class='chat'></div><form id='" + toUserName + "'  class='send-message'><input type='text'size='35'class='message' name='textBox'/><input type='submit'/></form></div></div>");
+						$messagePrivateFrom = $('#div' + toUserName);
+					}
+					if (data.isSend == true) {
+						$messagePrivateFrom.find('.chat').append("<b>" + data.fromUserName.trim() + '</b>: ' + msg + '<br/>');
+					} else {
+						$messagePrivateFrom.find('.chat').append("<b>" + toUserName + '</b>: ' + msg + '<br/>');
+					}
+				});
+
 				$(document).on('click', '.onlineUser', function() {
-					$('#wrapper').append("<div class='contentWrap'><div class='chatWrap'><div class='chat'></div><form class='send-message'><input type='text'size='35'class='message'/><input type='submit'/></form></div></div>");
+					var userName = this.innerText.trim();
+					$('#wrapper').append("<div class='contentWrap'><div id='div" + userName + "' class='chatWrap'><div class='chat'></div><form id='" + userName + "'  class='send-message'><input type='text'size='35'class='message' name='textBox'/><input type='submit'/></form></div></div>");
 				});
 
 				$(document).on('submit', '.send-message', function(e) {
-					socket.emit('sendMessageEvent', $('.message').val());
-					$('.message').val('');
+					socket.emit('sendPrivateMessage', this.id.trim(), this.elements['textBox'].value);
+					this.elements['textBox'].value = '';
 					// khong can dung e.preventDefault();
+					e.preventDefault()
 					return false;
 				});
 			});
