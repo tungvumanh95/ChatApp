@@ -4,6 +4,9 @@
  var io = require('socket.io').listen(server);
  var users = {};
 
+ // for DB
+ var mongoose = require('mongoose');
+
 // mapping resource files
 app.use(express.static('public'));
 
@@ -15,6 +18,24 @@ app.get('/jquery/jquery.js', function(req, res) {
 // starts server
  server.listen(3000);
 
+// connect to DB
+mongoose.connect('mongodb://localhost/chat', function(err) {
+	if (err) {
+		console.log(err);
+	} else {
+		console.log('Connect DB successfully');
+	}
+});
+
+var chatSchema = mongoose.Schema({
+	//name: {first: String, last: String},
+	userName: String,
+	msg: String,
+	created: {type: Date, default: Date.now}
+});
+
+var Chat = mongoose.model('Message', chatSchema);
+
 // maping index view file
  app.get('/chatapp', function(req, res) {
  	res.sendfile(__dirname + '/views/index.html');
@@ -22,6 +43,23 @@ app.get('/jquery/jquery.js', function(req, res) {
 
 // listen connection
 io.sockets.on('connection', function(socket){
+	// select old chat from DB
+	// Chat.find({}, function(err, docs) {
+	// 	if (err) {
+	// 		throw err;
+	// 	}
+	// 	socket.emit('load old message', docs);
+	// });
+
+ 	var limits = 8;
+ 	var query = Chat.find({});
+ 	// query.sort('-created').limit....
+ 	query.sort({"created": -1}).limit(limits).exec(function(err, docs) {
+		if (err) {
+			throw err;
+		}
+		socket.emit('load old message', docs.reverse());
+	});
 
 	// listen to check exist userName or not
 	socket.on('userLogin', function(data, callback) {
@@ -37,10 +75,18 @@ io.sockets.on('connection', function(socket){
 	});
 
 	// listen sending message event
-	socket.on('sendMessageEvent', function(data) {
-		io.sockets.emit('reciveMessageEvent', {userName: socket.userName, msg: data});
-		// I dont need this below code because it will send everyone except me
-		// socket.broadcast.emit('reciveMessageEvent',data);
+	socket.on('sendMessageEvent', function(msg) {
+		// save to DB
+		var newMsg = new Chat({userName: socket.userName, msg: msg});
+		newMsg.save(function(err){
+			if (err) {
+				throw err;
+			}
+			// send to all sockets
+			io.sockets.emit('reciveMessageEvent', {userName: socket.userName, msg: msg});
+			// I dont need this below code because it will send everyone except me
+			// socket.broadcast.emit('reciveMessageEvent',data);
+		});
 	});
 
 	socket.on('sendPrivateMessage', function(toUser, data) {

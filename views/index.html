@@ -68,6 +68,14 @@
 					$messageBox.val('');
 				});
 
+				// listening load old messags
+				socket.on('load old message', function(docs) {
+					for (var i = 0; i < docs.length; i++) {
+						$chat.append("<b>" + docs[i].userName + '</b>: ' + docs[i].msg + '<br/>');
+					}
+				});
+				
+
 				// listening reciving message event
 				socket.on('reciveMessageEvent', function(data){
 					$chat.append("<b>" + data.userName + '</b>: ' + data.msg + '<br/>');
