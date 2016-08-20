@@ -20,6 +20,11 @@ app.get('/jquery/jquery.js', function(req, res) {
  	res.sendfile(__dirname + '/views/index.html');
  });
 
+// maping index view file
+ app.get('/chatappBeauty', function(req, res) {
+ 	res.sendfile(__dirname + '/views/demo.html');
+ });
+
 // listen connection
 io.sockets.on('connection', function(socket){
 
@@ -38,9 +43,9 @@ io.sockets.on('connection', function(socket){
 
 	// listen sending message event
 	socket.on('sendMessageEvent', function(data) {
-		io.sockets.emit('reciveMessageEvent', {userName: socket.userName, msg: data});
+		//io.sockets.emit('reciveMessageEvent', {userName: socket.userName, msg: data});
 		// I dont need this below code because it will send everyone except me
-		// socket.broadcast.emit('reciveMessageEvent',data);
+		socket.broadcast.emit('reciveMessageEvent', {userName: socket.userName, msg: data});
 	});
 
 	socket.on('sendPrivateMessage', function(toUser, data) {

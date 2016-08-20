@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <meta charset="UTF-8">
+    <title>Direct Messaging</title>
+    
+    
+    <link rel="stylesheet" href="beauty_css/reset.css">
+
+        <link rel="stylesheet" href="beauty_css/style.css">
+    
+  </head>
+
+  <body>
+
+    <div class="wrapper">
+        <div id="loginWrap" style="height:100px">
+            <p>Enter a user name</p>
+            <p id="loginError"></p>
+            <form id="loginForm">
+                <input size="35" id="userName"/>
+                <input type="submit"/>
+            </form>
+        </div>
+        <div id="container" class="container" style="display: none">
+            <div class="left">
+                <div class="top">
+                    <input type="text" />
+                    <a href="javascript:;" class="search"></a>
+                </div>
+                <ul class="people">
+                    <li class="person" data-chat="person1">
+                        <img src="http://s13.postimg.org/ih41k9tqr/img1.jpg" alt="" />
+                        <span class="name">Thomas Bangalter</span>
+                        <span class="time">2:09 PM</span>
+                        <span class="preview">I was wondering...</span>
+                    </li>
+                    <li class="person" data-chat="person2">
+                        <img src="http://s3.postimg.org/yf86x7z1r/img2.jpg" alt="" />
+                        <span class="name">Dog Woofson</span>
+                        <span class="time">1:44 PM</span>
+                        <span class="preview">I've forgotten how it felt before</span>
+                    </li>
+                    <li class="person" data-chat="person3">
+                        <img src="http://s3.postimg.org/h9q4sm433/img3.jpg" alt="" />
+                        <span class="name">Louis CK</span>
+                        <span class="time">2:09 PM</span>
+                        <span class="preview">But we’re probably gonna need a new carpet.</span>
+                    </li>
+                    <li class="person" data-chat="person4">
+                        <img src="http://s3.postimg.org/quect8isv/img4.jpg" alt="" />
+                        <span class="name">Bo Jackson</span>
+                        <span class="time">2:09 PM</span>
+                        <span class="preview">It’s not that bad...</span>
+                    </li>
+                    <li class="person" data-chat="person5">
+                        <img src="http://s16.postimg.org/ete1l89z5/img5.jpg" alt="" />
+                        <span class="name">Michael Jordan</span>
+                        <span class="time">2:09 PM</span>
+                        <span class="preview">Wasup for the third time like is you bling bitch</span>
+                    </li>
+                    <li class="person" data-chat="person6">
+                        <img src="http://s30.postimg.org/kwi7e42rh/img6.jpg" alt="" />
+                        <span class="name">Drake</span>
+                        <span class="time">2:09 PM</span>
+                        <span class="preview">howdoyoudoaspace</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="right">
+                <div class="top"><span>To: <span class="name">Dog Woofson</span></span></div>
+                <div id="chatAllMessage" class="chat active-chat" data-chat="person1">
+
+                </div>
+                <div class="write">
+                    <a href="javascript:;" class="write-link attach"></a>
+                    <form id="chatAll">
+                        <input id="message" type="text" />
+                        <a href="javascript:;" onclick="$('#chatAll').submit();" class="write-link send"></a>
+                    </form>
+                    <a href="javascript:;" class="write-link smiley"></a>
+                </div>
+            </div>
+        </div>
+</div>
+
+<span class="credits">design: <a href="https://dribbble.com/Miksa" target="_blank">milan</a>, code: <a href="http://codepen.io/Momciloo" target="_blank">momcilo</a></span>
+
+        <script type="text/javascript" src="socket.io/socket.io.js"></script>
+        <script type="text/javascript" src="/jquery/jquery.js"></script>
+        <script src="js/index.js"></script>
+        <script>
+            $(document).ready(function(){
+                var socket = io.connect();
+                var $loginForm = $('#loginForm');
+                var $loginError = $('#loginError');
+                var $userName = $('#userName');
+                var $messageForm = $('#chatAll');
+                var $messageBox = $('#message');
+                var $chatAllMessage = $('#chatAllMessage');
+                var $users = $('#users');
+                // var userName = prompt('Enter your name', 'Anonymous') || 'Anonymous';
+
+                // Login function
+                $loginForm.submit(function(e) {
+                    e.preventDefault();
+                    var name = $userName.val();
+                    socket.emit('userLogin', $userName.val(), function(callbackValue) {
+                        if (callbackValue) {
+                            $('#loginWrap').hide();
+                            $('#container').show();
+                            $('#userNameDisplay').html(name);
+                        } else {
+                            $loginError.html('The userName is invalid or it may be already used. Please Try Again !');
+                        }
+                    });
+                    $userName.val('');
+                });
+
+                // Send message function
+                $messageForm.submit(function(e){
+                    // prevent reload the page
+                    e.preventDefault();
+                    console.log($messageBox.val());
+                    $chatAllMessage.append("<div class='bubble me'>" + $messageBox.val() + "</div>");
+                    socket.emit('sendMessageEvent', $messageBox.val());
+                    $messageBox.val('');
+                });
+
+                // listening reciving message event
+                socket.on('reciveMessageEvent', function(data){
+                    console.log(data);
+                    $chatAllMessage.append("<div class='bubble you'>" + data.userName + ": " + data.msg + "</div>");
+                });
+
+                // listening list users
+                socket.on('users', function(data){
+                    var users = '';
+                    for (var i = 0; i < data.length; i++) {
+                        users += "<span class='onlineUser'>" + data[i] + '<br/></span>'
+                    }
+                    $users.html(users);
+                });
+
+                // listening recieve private message
+                socket.on('recivePrivateMessageEvent', function(data){
+                    var toUserName = data.toUserName.trim();
+                    var msg = data.msg;
+                    var $messagePrivateFrom = $('#div' + toUserName);
+                    if ($messagePrivateFrom.length == 0) {
+                        $('#wrapper').append("<div class='contentWrap'><div id='div" + toUserName + "' class='chatWrap'><div class='chat'></div><form id='" + toUserName + "'  class='chatAll'><input type='text'size='35'class='message' name='textBox'/><input type='submit'/></form></div></div>");
+                        $messagePrivateFrom = $('#div' + toUserName);
+                    }
+                    if (data.isSend == true) {
+                        $messagePrivateFrom.find('.chat').append("<b>" + data.fromUserName.trim() + '</b>: ' + msg + '<br/>');
+                    } else {
+                        $messagePrivateFrom.find('.chat').append("<b>" + toUserName + '</b>: ' + msg + '<br/>');
+                    }
+                });
+
+                $(document).on('click', '.onlineUser', function() {
+                    var userName = this.textContent.trim();
+                    $('#wrapper').append("<div class='contentWrap'><div id='div" + userName + "' class='chatWrap'><div class='chat'></div><form id='" + userName + "'  class='chatAll'><input type='text'size='35'class='message' name='textBox'/><input type='submit'/></form></div></div>");
+                });
+
+                $(document).on('submit', '.chatAll', function(e) {
+                    socket.emit('sendPrivateMessage', this.id.trim(), this.elements['textBox'].value);
+                    this.elements['textBox'].value = '';
+                    // khong can dung e.preventDefault();
+                    e.preventDefault()
+                    return false;
+                });
+            });
+        </script>
+    
+    
+    
+  </body>
+</html>
