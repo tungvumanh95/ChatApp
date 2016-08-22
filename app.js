@@ -37,7 +37,10 @@ io.sockets.on('connection', function(socket){
 			callback(true);
 			socket.userName = data;
 			users[socket.userName] = socket;
-			updateUserNames();
+			var userNames = Object.keys(users);
+			userNames.splice(userNames.indexOf(socket.userName), 1)
+			socket.emit('init user names', userNames);
+			updateUserNames('online');
 		}
 	});
 
@@ -49,8 +52,8 @@ io.sockets.on('connection', function(socket){
 	});
 
 	socket.on('sendPrivateMessage', function(toUser, data) {
-		users[toUser].emit('recivePrivateMessageEvent', {isSend: false, fromUserName: toUser, toUserName: socket.userName, msg: data});
-		users[socket.userName].emit('recivePrivateMessageEvent', {isSend: true, fromUserName: socket.userName, toUserName: toUser, msg: data});
+		users[toUser].emit('recivePrivateMessageEvent', {fromUserName: toUser, toUserName: socket.userName, msg: data});
+		// users[socket.userName].emit('recivePrivateMessageEvent', {isSend: true, fromUserName: socket.userName, toUserName: toUser, msg: data});
 	});
 
 	// listening disconnect event (Out the session)
@@ -59,13 +62,14 @@ io.sockets.on('connection', function(socket){
 		if(socket.userName) {
 			console.log(socket.userName + ', ' +data);
 			// users.splice(users.indexOf(socket.userName), 1);
+			updateUserNames('offline');
 			delete users[socket.userName];
-			updateUserNames();
 		}
 	});
 
 	// function update list usernames from an event
-	function updateUserNames() {
-		io.sockets.emit('users', Object.keys(users));
+	function updateUserNames(stt) {
+		var userNames = Object.keys(users);
+		socket.broadcast.emit('update users', {status: stt, index: userNames.indexOf(socket.userName), userName: socket.userName});
 	}
 });

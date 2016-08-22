@@ -1,7 +1,5 @@
-$('.chat[data-chat=person2]').addClass('active-chat');
-$('.person[data-chat=person2]').addClass('active');
 
-$('.left .person').mousedown(function(){
+$(document).on('mousedown', '.left .person', function(e) {
     if ($(this).hasClass('.active')) {
         return false;
     } else {
