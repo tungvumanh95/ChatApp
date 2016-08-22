@@ -2,17 +2,11 @@
 <html >
   <head>
     <meta charset="UTF-8">
-    <title>Direct Messaging</title>
-    
-    
+    <title>Chat Application</title>
     <link rel="stylesheet" href="beauty_css/reset.css">
-
         <link rel="stylesheet" href="beauty_css/style.css">
-    
   </head>
-
   <body>
-
     <div class="wrapper">
         <div id="loginWrap" style="height:100px">
             <p>Enter a user name</p>
@@ -52,15 +46,15 @@
                 </div>
             </div>
         </div>
-</div>
+    </div>
 
-<span class="credits">design: <a href="https://dribbble.com/Miksa" target="_blank">milan</a>, code: <a href="http://codepen.io/Momciloo" target="_blank">momcilo</a></span>
+    <span class="credits">design: <a href="https://dribbble.com/Miksa" target="_blank">milan</a>, code: <a href="http://codepen.io/Momciloo" target="_blank">momcilo</a></span>
 
         <script type="text/javascript" src="socket.io/socket.io.js"></script>
         <script type="text/javascript" src="/jquery/jquery.js"></script>
         <script src="js/index.js"></script>
         <script>
-            $(document).ready(function(){
+            $(document).ready(function() {
                 var socket = io.connect();
                 var $loginForm = $('#loginForm');
                 var $loginError = $('#loginError');
@@ -84,8 +78,12 @@
 
                             // listening recieve private message
                             socket.on('recivePrivateMessageEvent', function(data){
+                                var $elementBox = $('#wrapChat').find('#' + data.toUserName);
                                 console.log('data');
-                                $('#wrapChat').find('#' + data.toUserName).append("<div class='bubble you'>" + data.toUserName.trim() + ": " + data.msg + "</div>");
+                                $elementBox.append("<div class='bubble you'>" + data.msg + "</div>");
+                                updateMessageLayout(data.toUserName);
+                                console.log(data.toUserName)
+                                $elementBox.animate({ scrollTop: $elementBox.height() }, "slow");
                             });
 
                             // listening list users
@@ -132,27 +130,50 @@
                 $messageForm.submit(function(e){
                     // prevent reload the page
                     e.preventDefault();
+                    var msg = $messageBox.val();
                     var $chatMessage = $('#wrapChat').find('.active-chat');
                     if ($chatMessage.attr('id').trim() == 'chatAllMessage') {
-                        console.log($messageBox.val());
-                        socket.emit('sendMessageEvent', $messageBox.val());
+                        console.log(msg);
+                        socket.emit('sendMessageEvent', msg);userName
                     } else {
-                        console.log($messageBox.val());
-                        socket.emit('sendPrivateMessage', $chatMessage.attr('id').trim(), $messageBox.val());
+                        console.log(msg);
+                        socket.emit('sendPrivateMessage', $chatMessage.attr('id').trim(), msg);
                     }
-                    $chatMessage.append("<div class='bubble me'>" + $messageBox.val() + "</div>");
+                    $chatMessage.append("<div class='bubble me'>" + msg + "</div>");
                     $messageBox.val('');
-                });
+                    updateMessageLayout($chatMessage.attr('id').trim());
+                    // keep scroll bottom
+                    $chatMessage.animate({ scrollTop: $chatMessage.height() }, "slow");
+                });userName
 
                 // listening reciving public message event
                 socket.on('reciveMessageEvent', function(data){
                     console.log(data);
                     $chatAllMessage.append("<div class='bubble you'>" + data.userName + ": " + data.msg + "</div>");
+                    updateMessageLayout('chatAllMessage');
+                    // keep scroll bottom
+                    $chatAllMessage.animate({ scrollTop: $chatAllMessage.height() }, "slow");
                 });
+
+                // update scroll when too much messages
+                function updateMessageLayout(userName) {
+                    var $elementBox = $('#wrapChat').find('#' + userName);
+                    if ($elementBox.css("justify-content") != "center") {
+                        var $heigthBox = $elementBox.height();
+                        var $widthBox = $elementBox.width();
+                        var $heightSum = 0;
+                        var $sizeOfOneline = $elementBox.css("font-size");
+                        $elementBox.find('.bubble').each(function() {   
+                            $heightSum += (($(this).text().length * 16.0) / 673) * 16 + 27;
+                        });
+                        console.log($heightSum);
+                        if ($heightSum > $heigthBox) {
+                            $elementBox.css("justify-content", "center");
+                            flagUpdateMessageLayout = true;
+                        }
+                    }
+                }
             });
         </script>
-    
-    
-    
   </body>
 </html>

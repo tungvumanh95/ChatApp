@@ -20,8 +20,8 @@ body {
 .wrapper {
   position: relative;
   left: 50%;
-  width: 1000px;
-  height: 800px;
+  width: 90%;
+  height: 1200px;
   -moz-transform: translate(-50%, 0);
   -ms-transform: translate(-50%, 0);
   -webkit-transform: translate(-50%, 0);
@@ -30,7 +30,7 @@ body {
 
 .container {
   position: relative;
-  top: 50%;
+  top: 43%;
   left: 50%;
   width: 80%;
   height: 75%;
@@ -42,7 +42,7 @@ body {
 }
 .container .left {
   float: left;
-  width: 37.6%;
+  width: 25%;
   height: 100%;
   border: 1px solid #e6e6e6;
   background-color: #fff;
@@ -51,7 +51,7 @@ body {
   position: relative;
   width: 100%;
   height: 96px;
-  padding: 29px;
+  padding: 29px 10px;
 }
 .container .left .top:after {
   position: absolute;
@@ -69,7 +69,7 @@ body {
 }
 .container .left input {
   float: left;
-  width: 188px;
+  width: 78%;
   height: 42px;
   padding: 0 15px;
   border: 1px solid #e6e6e6;
@@ -106,6 +106,9 @@ body {
   width: -webkit-calc(100% + 2px);
   width: -o-calc(100% + 2px);
   width: calc(100% + 2px);
+  height: 89.2%;
+  overflow-y: scroll;
+  overflow-x: hidden 
 }
 .container .left .people .person {
   position: relative;
@@ -155,7 +158,7 @@ body {
 }
 .container .left .people .person .preview {
   font-size: 14px;
-  display: inline-block;
+  display: block;
   overflow: hidden !important;
   width: 70%;
   white-space: nowrap;
@@ -187,7 +190,7 @@ body {
 .container .right {
   position: relative;
   float: left;
-  width: 62.4%;
+  width: 74%;
   height: 100%;
 }
 .container .right .top {
@@ -208,8 +211,8 @@ body {
 .container .right .chat {
   position: relative;
   display: none;
-  overflow: hidden;
-  padding: 0 35px 92px;
+  overflow-y: scroll;
+  overflow-x: hidden;
   border-width: 1px 1px 1px 0;
   border-style: solid;
   border-color: #e6e6e6;
@@ -221,6 +224,7 @@ body {
   justify-content: flex-end;
   -webkit-flex-direction: column;
   flex-direction: column;
+  height: 85%;
 }
 .container .right .chat.active-chat {
   display: block;
@@ -302,7 +306,7 @@ body {
 .container .right .write input {
   font-size: 16px;
   float: left;
-  width: 347px;
+  width: 90%;
   height: 40px;
   padding: 0 10px;
   color: #1a1a1a;
@@ -353,7 +357,9 @@ body {
   vertical-align: top;
   -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
-  border-radius: 5px;
+  border-radius: 5px; 
+  width: 78%;
+  word-wrap: break-word;
 }
 .container .right .bubble:before {
   position: absolute;
