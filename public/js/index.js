@@ -6,9 +6,17 @@ $(document).on('mousedown', '.left .person', function(e) {
         var findChat = $(this).attr('data-chat');
         var personName = $(this).find('.name').text();
         $('.right .top .name').html(personName);
-        $('.chat').removeClass('active-chat');
+        if ($('.active-chat').css('display') == 'block') {
+            $('.active-chat').css('display', 'none');
+        }
+        $('.active-chat').removeClass('active-chat');
         $('.left .person').removeClass('active');
         $(this).addClass('active');
-        $('.chat[data-chat = '+findChat+']').addClass('active-chat');
+        var $chatBox = $('.chat[data-chat = '+findChat+']');
+        $chatBox.addClass('active-chat');
+        var scroll = $(this).data('scroll');
+        if ($chatBox.data('scroll') == 'true') {
+            $chatBox.css('display', 'block');
+        }
     }
 });

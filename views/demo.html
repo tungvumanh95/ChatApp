@@ -23,7 +23,7 @@
                     <a href="javascript:;" class="search"></a>
                 </div>
                 <ul class="people" id="users">
-                    <li id="chatAllUsers" class="person active" data-chat="person0">
+                    <li id="chatAllUsers" class="person active" data-chat="person0" data-scroll="false">
                         <img src="http://s13.postimg.org/ih41k9tqr/img1.jpg" alt="" />
                         <span class="name">Chat Room</span>
                         <span class="time">2:09 PM</span>
@@ -158,18 +158,21 @@
                 // update scroll when too much messages
                 function updateMessageLayout(userName) {
                     var $elementBox = $('#wrapChat').find('#' + userName);
-                    if ($elementBox.css("justify-content") != "center") {
-                        var $heigthBox = $elementBox.height();
-                        var $widthBox = $elementBox.width();
+                    if ($elementBox.attr('data-scroll') != 'true') {
+                        var $heigthBox = $elementBox.height() * 0.9;
                         var $heightSum = 0;
                         var $sizeOfOneline = $elementBox.css("font-size");
                         $elementBox.find('.bubble').each(function() {   
-                            $heightSum += (($(this).text().length * 16.0) / 673) * 16 + 27;
+                            $heightSum += Math.ceil((($(this).text().length * 16.0) / $(this).outerWidth(true))) * 16 + 34;
+                            console.log($(this).text() + 'height' + $(this).outerHeight(true));
                         });
-                        console.log($heightSum);
+                        console.log('a' + $heightSum);
                         if ($heightSum > $heigthBox) {
-                            $elementBox.css("justify-content", "center");
-                            flagUpdateMessageLayout = true;
+                            $elementBox.attr('data-scroll', 'true');
+                            $elementBox.data('scroll', 'true');
+                            if ($elementBox.css('display') != 'hidden' && $elementBox.hasClass('active-chat')) {
+                                $elementBox.css('display', 'block');
+                            }
                         }
                     }
                 }
