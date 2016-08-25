@@ -12,6 +12,14 @@ app.get('/jquery/jquery.js', function(req, res) {
     res.sendfile(__dirname + '/node_modules/jquery/dist/jquery.min.js');
 });
 
+// mapping emoji file
+app.get('/emojify/emojify.js', function(req, res) {
+    res.sendfile(__dirname + '/node_modules/emojify.js/dist/js/emojify.js');
+});
+app.get('/emojify/emojify.css', function(req, res) {
+    res.sendfile(__dirname + '/node_modules/emojify.js/dist/css/data-uri/emojify.css');
+});
+
 // starts server
  server.listen(3000);
 

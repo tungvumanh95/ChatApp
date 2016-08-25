@@ -184,6 +184,10 @@ body {
   color: #fff;
   background: transparent;
 }
+.container .left .people .person.active div, .container .left .people .person:hover div {
+  color: #fff;
+  background: transparent;
+}
 .container .left .people .person.active:after, .container .left .people .person:hover:after {
   display: none;
 }
@@ -486,4 +490,11 @@ body {
 .credits a {
   color: white;
   text-decoration: none;
+}
+.emoji {
+    width: 1.5em !important;
+    height: 1.5em !important;
+    display: inline-block;
+    margin-bottom: -0.25em;
+    margin-right: 3px !important;
 }

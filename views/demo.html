@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <title>Chat Application</title>
     <link rel="stylesheet" href="beauty_css/reset.css">
-        <link rel="stylesheet" href="beauty_css/style.css">
+    <link rel="stylesheet" href="beauty_css/style.css">
+    <link rel="stylesheet" href="/emojify/emojify.css">
+    <script src="/emojify/emojify.js"></script>
   </head>
   <body>
     <div class="wrapper">
@@ -27,14 +29,14 @@
                         <img src="http://s13.postimg.org/ih41k9tqr/img1.jpg" alt="" />
                         <span class="name">Chat Room</span>
                         <span class="time">2:09 PM</span>
-                        <span class="preview">Wasup for the third time like is you bling bitch</span>
+                        <span class="preview">Hi, i'm online now</span>
                     </li>
                 </ul>
             </div>
             <div class="right" id="wrapChat">
                 <div class="top"><span>To: <span class="name">Chat Room</span></span></div>
                 <div id="chatAllMessage" class="chat active-chat" data-chat="person0">
-
+                
                 </div>
                 <div class="write" style="z-index:1000">
                     <a href="javascript:;" class="write-link attach"></a>
@@ -55,6 +57,17 @@
         <script src="js/index.js"></script>
         <script>
             $(document).ready(function() {
+                emojify.setConfig({
+                    img_dir          : 'images/emoji',  // Directory for emoji images
+                    ignored_tags     : {                // Ignore the following tags
+                        'SCRIPT'  : 1,
+                        'TEXTAREA': 1,
+                        'A'       : 1,
+                        'PRE'     : 1,
+                        'CODE'    : 1
+                    }
+                });
+                emojify.run(window.document.body);
                 var socket = io.connect();
                 var $loginForm = $('#loginForm');
                 var $loginError = $('#loginError');
@@ -79,11 +92,20 @@
                             // listening recieve private message
                             socket.on('recivePrivateMessageEvent', function(data){
                                 var $elementBox = $('#wrapChat').find('#' + data.toUserName);
+                                var $textUserBox = $('#users').find('#chatTo' + data.toUserName).find('.preview');
+                                // set new message for chat box
                                 console.log('data');
                                 $elementBox.append("<div class='bubble you'>" + data.msg + "</div>");
                                 updateMessageLayout(data.toUserName);
                                 console.log(data.toUserName)
                                 $elementBox.animate({ scrollTop: $elementBox.height() }, "slow");
+                                // set new message for user box (preview)
+                                if ($textUserBox.text().length > 100) {
+                                    $textUserBox.text(data.msg.substring(0, 100));
+                                } else {
+                                    $textUserBox.text(data.msg);
+                                }
+                                emojify.run();
                             });
 
                             // listening list users
@@ -101,7 +123,7 @@
                                     if (data[i] == idOfCurrentChat) {
                                         classChatTemp = 'active-chat';
                                     }
-                                    $users.append("<li id='" + idOnlineUser + "' class='" + classUserTemp + "'data-chat='person" + (i+1) + "'><img src=' http://s16.postimg.org/ete1l89z5/img5.jpg' alt='' /><span class='name'>"+ data[i] +"</span><span class='time'>2:09 PM</span><span class='preview'>Wasup for the third time like is you bling bitch</span></li>");
+                                    $users.append("<li id='" + idOnlineUser + "' class='" + classUserTemp + "'data-chat='person" + (i+1) + "'><img src=' http://s16.postimg.org/ete1l89z5/img5.jpg' alt='' /><span class='name'>"+ data[i] +"</span><span class='time'>2:09 PM</span><div class='preview'>Hi, i'm online now</div></li>");
                                     $('#wrapChat').append("<div id="+ data[i] +" class='" + classChatTemp + "' data-chat='person" + (i+1) + "'></div>");
                                 }
                             });
@@ -112,7 +134,7 @@
                                 var index = data.index;
                                 var userName = data.userName;
                                 if (data.status == 'online') {
-                                    $users.append("<li id='chatTo" + userName + "' class='person' data-chat='person" + (index+1) + "'><img src=' http://s16.postimg.org/ete1l89z5/img5.jpg' alt='' /><span class='name'>"+ userName +"</span><span class='time'>2:09 PM</span><span class='preview'>Wasup for the third time like is you bling bitch</span></li>");
+                                    $users.append("<li id='chatTo" + userName + "' class='person' data-chat='person" + (index+1) + "'><img src=' http://s16.postimg.org/ete1l89z5/img5.jpg' alt='' /><span class='name'>"+ userName +"</span><span class='time'>2:09 PM</span><div class='preview'>Hi, i'm online now</div></li>");
                                     $('#wrapChat').append("<div id="+ userName +" class='chat' data-chat='person" + (index+1) + "'></div>");
                                 } else {
                                     $users.find('#chatTo' + data.userName).remove();
@@ -144,7 +166,8 @@
                     updateMessageLayout($chatMessage.attr('id').trim());
                     // keep scroll bottom
                     $chatMessage.animate({ scrollTop: $chatMessage.height() }, "slow");
-                });userName
+                    emojify.run();
+                });
 
                 // listening reciving public message event
                 socket.on('reciveMessageEvent', function(data){
@@ -153,6 +176,7 @@
                     updateMessageLayout('chatAllMessage');
                     // keep scroll bottom
                     $chatAllMessage.animate({ scrollTop: $chatAllMessage.height() }, "slow");
+                    emojify.run();
                 });
 
                 // update scroll when too much messages
