@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <meta charset="UTF-8">
+    <title>Chat Application</title>
+    <link rel="stylesheet" href="beauty_css/reset.css">
+    <link rel="stylesheet" href="beauty_css/style.css">
+    <link rel="stylesheet" href="/emojify/emojify.css">
+    <script src="/emojify/emojify.js"></script>
+    <script type="text/javascript" src="/jquery/jquery.js"></script>
+    <script type="text/javascript" src="socket.io/socket.io.js"></script>
+    <script src="js/index.js"></script>
+  </head>
+  <body>
+    <div class="wrapper">
+        <div id="loginWrap" style="height:100px">
+            <p>Enter a user name</p>
+            <p id="loginError"></p>
+            <form id="loginForm">
+                <input size="35" id="userName"/>
+                <input type="submit"/>
+            </form>
+        </div>
+        <div id="container" class="container" style="display: none">
+            <div class="left">
+                <div class="top">
+                    <input type="text" />
+                    <a href="javascript:;" class="search"></a>
+                </div>
+                <ul class="people" id="users">
+                    <li id="chatAllUsers" class="person active" data-chat="person0" data-scroll="false">
+                        <img src="http://s13.postimg.org/ih41k9tqr/img1.jpg" alt="" />
+                        <span class="name">Chat Room</span>
+                        <span class="time">2:09 PM</span>
+                        <span class="preview">Hi, i'm online now</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="right" id="wrapChat">
+                <div class="top"><span>To: <span class="name">Chat Room</span></span></div>
+                <div id="chatAllMessage" class="chat active-chat" data-chat="person0">
+                
+                </div>
+                <div class="write" style="z-index:1000">
+                    <a href="javascript:;" class="write-link attach"></a>
+                    <form id="chatAll">
+                        <input id="message" type="text" />
+                        <a href="javascript:;" onclick="$('#chatAll').submit();" class="write-link send"></a>
+                    </form>
+                    <a href="javascript:showHideDiv('emoticons');" class="write-link smiley"></a>
+                    <div id="emoticons" style="display: none; width:300px; height: 300px; background-color:#FFFFFF; position: absolute; top: -300px; right: 0px; word-wrap: break-word; overflow-y: scroll; overflow-x: none">
+                        <% for (var i = 0; i < emoticons.length; i++) { %>
+                            <%= emoticons[i] + ' '; %>
+                        <% } %>
+                    </div>
+                    <script>
+                        function showHideDiv(id) {
+                            $('#' + id).toggle();
+                        }
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <span class="credits">design: <a href="https://dribbble.com/Miksa" target="_blank">milan</a>, code: <a href="http://codepen.io/Momciloo" target="_blank">momcilo</a></span>
+        <script>
+            $(document).ready(function() {
+                emojify.setConfig({
+                    img_dir          : 'images/emoji',  // Directory for emoji images
+                    ignored_tags     : {                // Ignore the following tags
+                        'SCRIPT'  : 1,
+                        'TEXTAREA': 1,
+                        'A'       : 1,
+                        'PRE'     : 1,
+                        'CODE'    : 1
+                    }
+                });
+                emojify.run(window.document.body);
+                var socket = io.connect();
+                var $loginForm = $('#loginForm');
+                var $loginError = $('#loginError');
+                var $userName = $('#userName');
+                var $messageForm = $('#chatAll');
+                var $messageBox = $('#message');
+                var $chatAllMessage = $('#chatAllMessage');
+                var $users = $('#users');
+                // var userName = prompt('Enter your name', 'Anonymous') || 'Anonymous';
+
+                // Login function
+                $loginForm.submit(function(e) {
+                    e.preventDefault();
+                    var name = $userName.val();
+                    socket.emit('userLogin', $userName.val(), function(callbackValue) {
+                        // login success
+                        if (callbackValue) {
+                            $('#loginWrap').hide();
+                            $('#container').show();
+                            $('#userNameDisplay').html(name);
+
+                            // listening recieve private message
+                            socket.on('recivePrivateMessageEvent', function(data){
+                                var $elementBox = $('#wrapChat').find('#' + data.toUserName);
+                                var $textUserBox = $('#users').find('#chatTo' + data.toUserName).find('.preview');
+                                // set new message for chat box
+                                console.log('data');
+                                $elementBox.append("<div class='bubble you'>" + data.msg + "</div>");
+                                updateMessageLayout(data.toUserName);
+                                console.log(data.toUserName)
+                                $elementBox.animate({ scrollTop: $elementBox.height() }, "slow");
+                                // set new message for user box (preview)
+                                if ($textUserBox.text().length > 100) {
+                                    $textUserBox.text(data.msg.substring(0, 100));
+                                } else {
+                                    $textUserBox.text(data.msg);
+                                }
+                                emojify.run();
+                            });
+
+                            // listening list users
+                            socket.on('init user names', function(data) {
+                                console.log('init');
+                                var idOfCurrentUser = $users.find('.active').attr('id').trim();
+                                var idOfCurrentChat = $('#wrapChat').find('.active-chat').attr('id').trim();
+                                for (var i = 0; i < data.length; i++) {
+                                    var idOnlineUser = 'chatTo' + data[i];
+                                    var classUserTemp = 'person';
+                                    var classChatTemp = 'chat';
+                                    if (idOnlineUser == idOfCurrentChat) {
+                                        classUserTemp = 'person active';
+                                    }
+                                    if (data[i] == idOfCurrentChat) {
+                                        classChatTemp = 'active-chat';
+                                    }
+                                    $users.append("<li id='" + idOnlineUser + "' class='" + classUserTemp + "'data-chat='person" + (i+1) + "'><img src=' http://s16.postimg.org/ete1l89z5/img5.jpg' alt='' /><span class='name'>"+ data[i] +"</span><span class='time'>2:09 PM</span><div class='preview'>Hi, i'm online now</div></li>");
+                                    $('#wrapChat').append("<div id="+ data[i] +" class='" + classChatTemp + "' data-chat='person" + (i+1) + "'></div>");
+                                }
+                            });
+
+                            // listening update users when one login or logout
+                            socket.on('update users', function(data) {
+                                console.log('update');
+                                var index = data.index;
+                                var userName = data.userName;
+                                if (data.status == 'online') {
+                                    $users.append("<li id='chatTo" + userName + "' class='person' data-chat='person" + (index+1) + "'><img src=' http://s16.postimg.org/ete1l89z5/img5.jpg' alt='' /><span class='name'>"+ userName +"</span><span class='time'>2:09 PM</span><div class='preview'>Hi, i'm online now</div></li>");
+                                    $('#wrapChat').append("<div id="+ userName +" class='chat' data-chat='person" + (index+1) + "'></div>");
+                                } else {
+                                    $users.find('#chatTo' + data.userName).remove();
+                                    $('#wrapChat').find('#' + data.userName).remove();
+                                }
+                            });
+                        } else {    
+                            $loginError.html('The userName is invalid or it may be already used. Please Try Again !');
+                        }
+                    });
+                    $userName.val('');
+                });
+
+                // Send message function
+                $messageForm.submit(function(e){
+                    // prevent reload the page
+                    e.preventDefault();
+                    var msg = $messageBox.val();
+                    var $chatMessage = $('#wrapChat').find('.active-chat');
+                    if ($chatMessage.attr('id').trim() == 'chatAllMessage') {
+                        console.log(msg);
+                        socket.emit('sendMessageEvent', msg);userName
+                    } else {
+                        console.log(msg);
+                        socket.emit('sendPrivateMessage', $chatMessage.attr('id').trim(), msg);
+                    }
+                    $chatMessage.append("<div class='bubble me'>" + msg + "</div>");
+                    $messageBox.val('');
+                    updateMessageLayout($chatMessage.attr('id').trim());
+                    // keep scroll bottom
+                    $chatMessage.animate({ scrollTop: $chatMessage.height() }, "slow");
+                    emojify.run();
+                });
+
+                // listening reciving public message event
+                socket.on('reciveMessageEvent', function(data){
+                    console.log(data);
+                    $chatAllMessage.append("<div class='bubble you'>" + data.userName + ": " + data.msg + "</div>");
+                    updateMessageLayout('chatAllMessage');
+                    // keep scroll bottom
+                    $chatAllMessage.animate({ scrollTop: $chatAllMessage.height() }, "slow");
+                    emojify.run();
+                });
+
+                // update scroll when too much messages
+                function updateMessageLayout(userName) {
+                    var $elementBox = $('#wrapChat').find('#' + userName);
+                    if ($elementBox.attr('data-scroll') != 'true') {
+                        var $heigthBox = $elementBox.height() * 0.9;
+                        var $heightSum = 0;
+                        var $sizeOfOneline = $elementBox.css("font-size");
+                        $elementBox.find('.bubble').each(function() {   
+                            $heightSum += Math.ceil((($(this).text().length * 16.0) / $(this).outerWidth(true))) * 16 + 34;
+                            console.log($(this).text() + 'height' + $(this).outerHeight(true));
+                        });
+                        console.log('a' + $heightSum);
+                        if ($heightSum > $heigthBox) {
+                            $elementBox.attr('data-scroll', 'true');
+                            $elementBox.data('scroll', 'true');
+                            if ($elementBox.css('display') != 'hidden' && $elementBox.hasClass('active-chat')) {
+                                $elementBox.css('display', 'block');
+                            }
+                        }
+                    }
+                }
+
+                $('#emoticons .emoji').click(function() {
+                    $('#emoticons').hide();
+                    $('#message').val($('#message').val() + ' ' + $(this).attr('title'));
+                });
+            });
+        </script>
+  </body>
+</html>

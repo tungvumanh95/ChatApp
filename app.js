@@ -2,7 +2,11 @@
  var app = express();
  var server = require('http').createServer(app);
  var io = require('socket.io').listen(server);
+ var fs = require('fs');
  var users = {};
+
+// set view engine
+app.set('view engine', 'ejs');
 
 // mapping resource files
 app.use(express.static('public'));
@@ -30,11 +34,23 @@ app.get('/emojify/emojify.css', function(req, res) {
 
 // maping index view file
  app.get('/chatappBeauty', function(req, res) {
- 	res.sendfile(__dirname + '/views/demo.html');
+ 	// res.sendfile(__dirname + '/views/demo.html');
+ 	/// return all data emoji
+ 	fs.readdir('public/images/emoji', function(err, files) {
+ 		if (err) {
+ 			return console.log(err);
+ 		} 
+ 		files.forEach(function(file, index) {
+ 			files[index] = ':' + file.substring(0, file.lastIndexOf('.')) + ':';
+ 		});
+ 		res.render('demoEJS.ejs', {
+ 			emoticons: files
+ 		});
+ 	})
  });
 
 // listen connection
-io.sockets.on('connection', function(socket){
+io.sockets.on('connection', function(socket) {
 
 	// listen to check exist userName or not
 	socket.on('userLogin', function(data, callback) {
